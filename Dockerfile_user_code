@@ -1,0 +1,28 @@
+FROM python:3.10-slim
+
+# Checkout and install dagster libraries needed to run the gRPC server
+# exposing your repository to dagster-webserver and dagster-daemon, and to load the DagsterInstance
+ENV PYTHONUNBUFFERED=1
+WORKDIR /app
+ENV PYTHONPATH=.
+
+RUN pip install \
+    dagster \
+    dagster-postgres \
+    dagster-docker \
+    dagster-dbt  \
+    dbt-duckdb
+
+# Add repository code
+
+
+COPY dagster_code dagster_code
+COPY dbt_project dbt_project
+COPY target target
+COPY dbt_project.yml .
+
+
+RUN mkdir -p target && dbt deps --profiles-dir dbt_project/.dbt
+
+# Run dagster gRPC server on port 4000
+EXPOSE 4000

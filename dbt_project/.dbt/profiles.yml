@@ -1,0 +1,9 @@
+housing:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: './data/housing.duckdb'
+      extensions:
+        - httpfs
+        - parquet

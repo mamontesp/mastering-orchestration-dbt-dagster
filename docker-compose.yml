@@ -1,0 +1,128 @@
+services:
+  duckdb:
+    platform: linux/x86_64
+    build:
+      context: .
+      dockerfile: ./Dockerfile_duckdb
+    container_name: duckdb_container
+    volumes:
+      - ./data:/app/data
+    networks:
+      - housing_network
+    command: sh -c "
+      duckdb data/housing.duckdb"
+
+  housing_postgresql:
+    image: postgres:13
+    container_name: housing_postgres
+    environment:
+      POSTGRES_USER: "postgres_user"
+      POSTGRES_PASSWORD: "postgres_password"
+      POSTGRES_DB: housing_dagster
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./dagster_code/dagster_db_setup/db_setup:/docker-entrypoint-initdb.d/
+    networks:
+      - housing_network
+
+
+  # This service runs the gRPC server that loads your user code, in both dagster-webserver
+  # and dagster-daemon. By setting DAGSTER_CURRENT_IMAGE to its own image, we tell the
+  # run launcher to use this same image when launching runs in a new container as well.
+  # Multiple containers like this can be deployed separately - each just needs to run on
+  # its own port, and have its own entry in the workspace.yaml file that's loaded by the
+      # webserver.
+  housing_dagster_user_code:
+    build:
+      context: .
+      dockerfile: ./Dockerfile_user_code
+    container_name: housing_dagster_user_code
+    image: dagster_user_code_image
+    restart: always
+    command: bash -c "
+      dbt parse --profiles-dir dbt_project/.dbt
+      && dagster api grpc -h 0.0.0.0 -p 4000 -d dagster_code --module-name housing"
+    environment:
+      DAGSTER_POSTGRES_USER: "postgres_user"
+      DAGSTER_PG_PASSWORD: "postgres_password"
+      DAGSTER_POSTGRES_DB: "housing_dagster"
+      DAGSTER_CURRENT_IMAGE: "dagster_user_code_image"
+      DAGSTER_POSTGRES_HOST: "housing_postgresql"
+      DAGSTER_POSTGRES_PORT: 5432
+    volumes:
+      - ./data:/app/data
+    networks:
+      - housing_network
+
+  # This service runs dagster-webserver, which loads your user code from the user code container.
+  # Since our instance uses the QueuedRunCoordinator, any runs submitted from the webserver will be put on
+  # a queue and later dequeued and launched by dagster-daemon.
+  dagster_housing_webserver:
+    build:
+      context: .
+      dockerfile: ./Dockerfile_dagster
+    entrypoint:
+      - dagster-webserver
+      - -h
+      - "0.0.0.0"
+      - -p
+      - "3000"
+      - -w
+      - workspace.yaml
+    container_name: dagster_housing_webserver
+    expose:
+      - "3000"
+    ports:
+      - "3000:3000"
+    environment:
+      DAGSTER_POSTGRES_USER: "postgres_user"
+      DAGSTER_PG_PASSWORD: "postgres_password"
+      DAGSTER_POSTGRES_DB: "housing_dagster"
+      DAGSTER_POSTGRES_HOST: "housing_postgresql"
+      DAGSTER_POSTGRES_PORT: 5432
+    volumes: # Make docker client accessible so we can terminate containers from the webserver
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/io_manager_storage:/tmp/io_manager_storage
+      - ./data:/app/data
+    networks:
+      - housing_network
+    depends_on:
+      - housing_postgresql
+      - housing_dagster_user_code
+
+  # This service runs the dagster-daemon process, which is responsible for taking runs
+  # off of the queue and launching them, as well as creating runs from schedules or sensors.
+  housing_dagster_daemon:
+    build:
+      context: .
+      dockerfile: ./Dockerfile_dagster
+    entrypoint:
+      - dagster-daemon
+      - run
+    container_name: housing_dagster_daemon
+    restart: on-failure
+    environment:
+      DAGSTER_POSTGRES_USER: "postgres_user"
+      DAGSTER_PG_PASSWORD: "postgres_password"
+      DAGSTER_POSTGRES_DB: "housing_dagster"
+      DAGSTER_POSTGRES_HOST: "housing_postgresql"
+      DAGSTER_POSTGRES_PORT: 5432
+    volumes: # Make docker client accessible so we can launch containers using host docker
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/io_manager_storage:/tmp/io_manager_storage
+      - ./data:/app/data
+    networks:
+      - housing_network
+    depends_on:
+      - housing_postgresql
+      - housing_dagster_user_code
+
+networks:
+  housing_network:
+    driver: bridge
+    name: housing_network
+
+volumes:
+  postgres_data:
