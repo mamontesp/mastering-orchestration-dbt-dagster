@@ -3,7 +3,7 @@ housing:
   outputs:
     dev:
       type: duckdb
-      path: '/Users/andreamontes/Desktop/DataExpert/capstone-project-mamontesp/data/housing.duckdb'
+      path: './data/housing.duckdb'
       extensions:
         - httpfs
         - parquet

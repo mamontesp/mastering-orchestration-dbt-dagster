@@ -39,8 +39,10 @@ models:
   housing:
     +on_schema_change: "sync_all_columns"
   # Config indicated by + and applies to all files under models/example/
-    example:
-      +materialized: view
+    fixed:
+      +materialized: table
+    mobile:
+      +materialized: table
   
 seeds:
   housing:
