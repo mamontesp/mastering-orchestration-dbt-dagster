@@ -1,0 +1,17 @@
+FROM alpine:latest
+
+# Install dependencies
+RUN apk update && apk add --no-cache \
+    wget \
+    unzip \
+    libc6-compat
+
+# Download DuckDB
+RUN wget -O duckdb_cli.zip https://github.com/duckdb/duckdb/releases/download/v0.3.1/duckdb_cli-linux-amd64.zip && \
+    unzip duckdb_cli.zip && \
+    rm duckdb_cli.zip && \
+    mv duckdb /usr/local/bin/duckdb
+
+# Set working directory
+WORKDIR /data
+

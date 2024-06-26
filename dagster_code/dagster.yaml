@@ -1,0 +1,46 @@
+run_launcher:
+  module: dagster.core.launcher
+  class: DefaultRunLauncher
+
+run_coordinator:
+  module: dagster.core.run_coordinator
+  class: QueuedRunCoordinator
+  config:
+    max_concurrent_runs: -1
+    tag_concurrency_limits:
+    - key: database
+      value: duckdb
+      limit: 10
+    - key: dagster/backfill
+      limit: 10
+    - key: aws_resource
+      value: dms
+      limit: 1
+
+storage:
+  postgres:
+    postgres_db:
+      username: 
+        env: DAGSTER_POSTGRES_USER
+      password: 
+        env: DAGSTER_PG_PASSWORD
+      hostname: 
+        env: DAGSTER_POSTGRES_HOST
+      db_name: 
+        env: DAGSTER_POSTGRES_DB
+      port: 
+        env: DAGSTER_POSTGRES_PORT
+
+python_logs:
+  python_log_level: INFO
+  managed_python_loggers:
+    - logger
+
+local_artifact_storage:
+  module: dagster.core.storage.root
+  class: LocalArtifactStorage
+  config:
+    base_dir: ./dagster-logs
+
+telemetry:
+  enabled: false

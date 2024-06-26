@@ -1,1 +1,6 @@
-.venv/
+.venv/*
+logs/
+target/
+dbt_packages/
+data/*
+.DS_Store
