@@ -4,16 +4,19 @@ Example to show case how to orchestrate a dbt project to create independent sche
 
 ## How to use it?
 
-1. ´´´sh
+First run this command to spin up all the required services:
+
+``` sh
 docker compose up --build
-´´´
-2. Navigate <http://localhost:3000/>
-3. Go to assets, and check available models
-4. Materialize assets selecting providers as partitions
+```
 
-## Datasets to be used
+1. Navigate <http://localhost:3000/>
+2. Go to assets, and check available models
+3. Materialize assets selecting providers as partitions
 
-- [Datos abiertos Colombia - Telefonía Móvil abonados por categoría ])(<https://www.datos.gov.co/Ciencia-Tecnolog-a-e-Innovaci-n/Telefon-a-M-vil-abonados-por-categor-a/nrst-mwx4>)
+## Datasets
+
+- [Datos abiertos Colombia - Telefonía Móvil abonados por categoría](<https://www.datos.gov.co/Ciencia-Tecnolog-a-e-Innovaci-n/Telefon-a-M-vil-abonados-por-categor-a/nrst-mwx4>)
 
 ## License
 
