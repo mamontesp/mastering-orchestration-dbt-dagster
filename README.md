@@ -1,14 +1,19 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-24ddc0f5d75046c5622901739e7c5dd533143b0c8e959d652212380cedb1ea36.svg)](https://classroom.github.com/a/1lXY_Wlg)
+# Phone Subscribers By Category
 
+Example to show case how to orchestrate a dbt project to create independent schemas with the same models using dbt variables.
 
-# Housing affordability in Bogotá / Colombia
+## How to use it?
 
-I plan to implement a data model that derives metrics to know how affordable is housing and how is that affordability level affected by the percentage of airbnb properties in a city locality.
+1. ´´´sh
+docker compose up --build
+´´´
+2. Navigate <http://localhost:3000/>
+3. Go to assets, and check available models
+4. Materialize assets selecting providers as partitions
 
-## Preliminar datasets to be used
-- [Airbtics](https://app.airbtics.com)
-- [Interamerican Development Bank](https://mydata.iadb.org/Urban-Development-and-Housing/Dataset-of-Housing-Indicators/s8qq-iq5k/data)
-- [CEPALSTAT API](https://statistics.cepal.org/portal/cepalstat/open-data.html?lang=en)
+## Datasets to be used
+
+- [Datos abiertos Colombia - Telefonía Móvil abonados por categoría ])(<https://www.datos.gov.co/Ciencia-Tecnolog-a-e-Innovaci-n/Telefon-a-M-vil-abonados-por-categor-a/nrst-mwx4>)
 
 ## License
 
